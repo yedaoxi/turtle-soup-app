@@ -9,92 +9,114 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700" rel="stylesheet"/>
     <style>
         body { background-color: #000; font-family: 'Noto Serif SC', serif; margin: 0; overflow: hidden; }
-        @media (min-width: 1024px) {
-            .game-container { display: grid; grid-template-columns: 320px 1fr; width: 100vw; height: 100vh; }
-            .side-library { display: flex !important; border-right: 1px solid rgba(115, 17, 212, 0.2); }
-        }
-        @media (max-width: 1023px) {
-            .game-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
-            .side-library { display: none; }
-        }
-        .tombstone-btn { clip-path: polygon(10% 0%, 90% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%); transition: 0.3s; cursor: pointer; }
-        .tombstone-btn:hover:not(:disabled) { filter: brightness(1.4); transform: translateY(-3px); }
-        .tombstone-btn:active { transform: translateY(1px); }
-        #chat-box::-webkit-scrollbar { width: 6px; }
+        .tombstone-btn { clip-path: polygon(10% 0%, 90% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%); transition: 0.3s; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .tombstone-btn:hover:not(:disabled) { filter: brightness(1.4); transform: translateY(-3px); box-shadow: 0 0 20px rgba(115, 17, 212, 0.4); }
+        
+        #chat-box::-webkit-scrollbar { width: 4px; }
         #chat-box::-webkit-scrollbar-thumb { background: #7311d4; border-radius: 10px; }
-        #intro-layer { position: fixed; inset: 0; z-index: 999; background: radial-gradient(circle, #1a052e 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.8s ease; }
-        .fade-out { opacity: 0; pointer-events: none; transform: scale(1.05); }
-        .glass-panel { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(115, 17, 212, 0.3); }
+        
+        /* 页面切换动画 */
+        .page-layer { position: fixed; inset: 0; transition: all 0.6s ease-in-out; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; background: #000; }
+        .hidden-layer { opacity: 0; pointer-events: none; transform: scale(1.1); }
+        .visible-layer { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+        /* 主菜单背景 */
+        .menu-bg { background: radial-gradient(circle, #1a052e 0%, #000 100%); }
     </style>
 </head>
 <body class="text-gray-200">
 
-    <div id="intro-layer">
-        <div class="text-center space-y-8 p-6">
-            <h1 class="font-title text-8xl md:text-9xl text-white drop-shadow-[0_0_20px_rgba(115,17,212,0.8)]">海龟汤</h1>
-            <p class="text-primary tracking-[0.8em] text-sm font-bold uppercase">守 墓 人 之 门</p>
-            <div class="pt-10">
-                <button onclick="enterGame()" class="w-72 h-20 bg-primary tombstone-btn font-bold text-2xl tracking-widest text-white">
+    <div id="layer-gate" class="page-layer visible-layer">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1505832018823-50331d70d237?q=80&w=1000')] bg-cover bg-center opacity-30"></div>
+        <div class="relative z-20 text-center space-y-8">
+            <h1 class="font-title text-9xl text-white drop-shadow-[0_0_20px_rgba(115,17,212,0.8)]">海龟汤</h1>
+            <p class="text-primary tracking-[0.8em] text-sm font-bold">守 墓 人 之 门</p>
+            <div class="pt-12">
+                <button onclick="switchPage('layer-gate', 'layer-menu')" class="w-72 h-20 bg-primary tombstone-btn font-bold text-2xl tracking-widest text-white">
                     开启仪式
                 </button>
-                <p id="save-hint" class="mt-4 text-white/40 text-xs tracking-widest">检测到灵魂印记，将继续您的旅程</p>
             </div>
         </div>
     </div>
 
-    <div class="game-container bg-zinc-950">
-        <aside class="side-library hidden flex-col bg-black/60 p-6 overflow-y-auto">
-            <h2 class="font-title text-3xl text-primary mb-10 tracking-widest text-center">灵魂图书馆</h2>
-            <div id="story-list" class="space-y-4"></div>
-        </aside>
-
-        <main class="flex flex-col relative">
-            <header class="p-5 flex justify-between items-center bg-black/80 border-b border-primary/20 z-10">
-                <div class="flex items-center gap-4">
-                    <button onclick="toggleMusic()" id="music-btn" class="material-symbols-outlined text-primary text-2xl">music_note</button>
-                    <h3 id="current-story-name" class="font-bold text-lg tracking-widest text-gray-400">选择关卡...</h3>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div id="sanity-display" class="font-black text-primary mr-4">SAN 100</div>
-                    <button onclick="toggleSettings(true)" class="material-symbols-outlined text-gray-500 hover:text-white transition-colors">settings</button>
-                </div>
-            </header>
-
-            <div id="chat-box" class="flex-grow p-8 overflow-y-auto space-y-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+    <div id="layer-menu" class="page-layer hidden-layer menu-bg">
+        <div class="text-center space-y-12">
+            <div class="space-y-2">
+                <h2 class="text-primary tracking-widest text-xs uppercase opacity-60">—— 灵魂驻留处 ——</h2>
+                <h3 class="text-4xl font-bold tracking-[0.5em]">主菜单</h3>
+            </div>
+            
+            <div class="flex flex-col gap-6 w-80">
+                <button onclick="continueGame()" class="h-16 border border-primary/40 rounded-xl hover:bg-primary/10 transition-all font-bold tracking-widest text-lg flex items-center justify-center gap-3">
+                    <span class="material-symbols-outlined">play_arrow</span> 继续解谜
+                </button>
+                <button onclick="switchPage('layer-menu', 'layer-library')" class="h-16 border border-white/10 rounded-xl hover:bg-white/5 transition-all tracking-widest text-lg flex items-center justify-center gap-3">
+                    <span class="material-symbols-outlined">auto_stories</span> 灵魂图书馆
+                </button>
+                <button onclick="toggleSettings(true)" class="h-16 border border-white/10 rounded-xl hover:bg-white/5 transition-all tracking-widest text-lg flex items-center justify-center gap-3">
+                    <span class="material-symbols-outlined">settings</span> 祭坛设置
+                </button>
             </div>
 
-            <footer class="p-8 bg-black border-t border-primary/10">
-                <div class="max-w-5xl mx-auto flex gap-4">
-                    <input id="user-input" type="text" placeholder="向虚空提问..." 
+            <button onclick="switchPage('layer-menu', 'layer-gate')" class="text-xs text-white/30 uppercase tracking-[0.4em] hover:text-white transition-colors">回到门外</button>
+        </div>
+    </div>
+
+    <div id="layer-library" class="page-layer hidden-layer bg-zinc-950">
+        <div class="w-full max-w-4xl p-8 space-y-10 overflow-y-auto">
+            <div class="flex justify-between items-end border-b border-primary/20 pb-6">
+                <h2 class="font-title text-6xl text-primary">灵魂图书馆</h2>
+                <button onclick="switchPage('layer-library', 'layer-menu')" class="text-primary flex items-center gap-2 underline text-sm">
+                    返回菜单
+                </button>
+            </div>
+            <div id="story-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
+                </div>
+        </div>
+    </div>
+
+    <div id="layer-game" class="page-layer hidden-layer">
+        <div class="w-full h-full flex flex-col bg-zinc-950">
+            <header class="p-6 flex justify-between items-center border-b border-white/5 bg-black/40">
+                <div class="flex items-center gap-4">
+                    <button onclick="switchPage('layer-game', 'layer-menu')" class="material-symbols-outlined text-gray-500 hover:text-white">arrow_back</button>
+                    <h3 id="current-story-name" class="font-bold tracking-widest text-primary">...</h3>
+                </div>
+                <div class="text-primary font-black tracking-tighter" id="sanity-display">SAN 100</div>
+            </header>
+
+            <div id="chat-box" class="flex-grow p-8 overflow-y-auto space-y-6"></div>
+
+            <footer class="p-8 bg-black/60 border-t border-white/5">
+                <div class="max-w-4xl mx-auto flex gap-4">
+                    <input id="user-input" type="text" placeholder="在此提问，回车发送..." 
+                           onkeydown="if(event.key === 'Enter') handleAsk()"
                            class="flex-grow bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-lg focus:outline-none focus:border-primary transition-all">
-                    <button onclick="handleAsk()" class="bg-primary px-8 rounded-2xl hover:scale-105 active:scale-95 transition-all">
+                    <button onclick="handleAsk()" class="bg-primary px-8 rounded-2xl text-white">
                         <span class="material-symbols-outlined">send</span>
                     </button>
                 </div>
-                <div class="max-w-5xl mx-auto flex justify-between mt-4 px-2">
-                    <button onclick="confirmTruth()" class="text-[10px] font-bold text-primary tracking-widest uppercase hover:text-white">提交最终真相</button>
-                    <button onclick="showLibraryMobile()" class="lg:hidden text-[10px] text-white/40">关卡列表</button>
+                <div class="text-center mt-4">
+                    <button onclick="confirmTruth()" class="text-[10px] font-bold text-primary tracking-[0.3em] uppercase opacity-60 hover:opacity-100">探寻最终真相</button>
                 </div>
             </footer>
-        </main>
-    </div>
-
-    <div id="settings-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center bg-black/80 backdrop-blur-md">
-        <div class="glass-panel p-10 rounded-3xl w-80 space-y-8 text-center">
-            <h2 class="font-title text-3xl text-primary">仪式设置</h2>
-            <div class="space-y-4">
-                <button onclick="exitToTitle()" class="w-full py-4 border border-white/10 rounded-xl hover:bg-white/5 transition-all">退出到主界面</button>
-                <button onclick="resetGame()" class="w-full py-4 border border-red-900/50 text-red-500 rounded-xl hover:bg-red-500/10 transition-all">重置所有进度</button>
-            </div>
-            <button onclick="toggleSettings(false)" class="text-sm text-gray-500 underline uppercase tracking-widest">返回游戏</button>
         </div>
     </div>
 
-    <div id="modal-truth" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
-        <div class="glass-panel p-10 rounded-3xl max-w-2xl w-full">
+    <div id="settings-modal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/90 backdrop-blur-sm">
+        <div class="bg-zinc-900 border border-primary/20 p-10 rounded-3xl w-80 text-center space-y-6">
+            <h2 class="text-2xl font-bold text-primary">设置</h2>
+            <button onclick="toggleMusic()" class="w-full py-4 bg-white/5 rounded-xl">切换音乐 开启/关闭</button>
+            <button onclick="resetGame()" class="w-full py-4 text-red-500 border border-red-900/30 rounded-xl font-bold">重置存档</button>
+            <button onclick="toggleSettings(false)" class="text-sm underline text-gray-500">返回</button>
+        </div>
+    </div>
+
+    <div id="modal-truth" class="fixed inset-0 z-[2000] hidden flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+        <div class="bg-zinc-900 border border-primary/30 p-10 rounded-3xl max-w-2xl w-full">
             <h2 class="font-title text-4xl text-primary mb-6 text-center">真相揭晓</h2>
-            <div id="truth-content" class="text-gray-300 text-lg leading-relaxed italic mb-10 bg-white/5 p-6 rounded-2xl"></div>
-            <button onclick="unlockNextAndClose()" class="w-full py-5 bg-primary rounded-2xl font-bold text-xl tracking-widest text-white">吸纳此魂并继续</button>
+            <div id="truth-content" class="text-gray-300 text-lg italic mb-10 bg-white/5 p-6 rounded-2xl border border-white/5"></div>
+            <button onclick="unlockNextAndClose()" class="w-full py-5 bg-primary rounded-2xl font-bold text-xl text-white">吸纳此魂并继续</button>
         </div>
     </div>
 
@@ -115,69 +137,48 @@
         // 更多故事可以继续添加...
     ];
 
-    // 初始化进度
-    let state = JSON.parse(localStorage.getItem('soup_save_v1')) || { unlocked: 1, activeId: 0, sanity: 100 };
+    let state = JSON.parse(localStorage.getItem('soup_pro_v1')) || { unlocked: 1, activeId: 0 };
 
-    function init() {
-        document.getElementById('save-hint').style.display = state.unlocked > 1 ? 'block' : 'none';
-        renderLists();
-        updateUI();
+    function switchPage(fromId, toId) {
+        document.getElementById(fromId).classList.add('hidden-layer');
+        document.getElementById(fromId).classList.remove('visible-layer');
+        document.getElementById(toId).classList.remove('hidden-layer');
+        document.getElementById(toId).classList.add('visible-layer');
+        if(toId === 'layer-library') renderLibrary();
+    }
+
+    function continueGame() {
         loadStory(state.activeId);
+        switchPage('layer-menu', 'layer-game');
     }
 
-    function enterGame() {
-        document.getElementById('intro-layer').classList.add('fade-out');
-        const m = document.getElementById('bg-music');
-        m.play().catch(() => {});
-    }
-
-    function exitToTitle() {
-        document.getElementById('intro-layer').classList.remove('fade-out');
-        toggleSettings(false);
-    }
-
-    function toggleSettings(show) {
-        document.getElementById('settings-modal').style.display = show ? 'flex' : 'none';
-    }
-
-    function resetGame() {
-        if(confirm("确定要抹除所有灵魂印记（进度）吗？此操作不可撤销。")) {
-            localStorage.removeItem('soup_save_v1');
-            location.reload();
-        }
-    }
-
-    function renderLists() {
-        const render = (id) => {
-            const list = document.getElementById(id);
-            list.innerHTML = STORIES.map((s, idx) => {
-                const isLocked = idx >= state.unlocked;
-                const isActive = idx === state.activeId;
-                return `
-                    <div onclick="${isLocked ? '' : `loadStory(${idx})`}" 
-                         class="p-5 rounded-2xl border ${isActive ? 'border-primary bg-primary/20' : 'border-white/5 bg-white/5'} 
-                                ${isLocked ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50'} transition-all">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold text-sm tracking-widest">${isLocked ? '??? 锁闭中' : s.name}</span>
-                            ${isLocked ? '<span class="material-symbols-outlined text-sm">lock</span>' : ''}
-                        </div>
+    function renderLibrary() {
+        const grid = document.getElementById('story-grid');
+        grid.innerHTML = STORIES.map((s, idx) => {
+            const isLocked = idx >= state.unlocked;
+            return `
+                <div onclick="${isLocked ? '' : `loadStory(${idx}); switchPage('layer-library', 'layer-game')`}" 
+                     class="p-8 rounded-3xl border ${idx === state.activeId ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5'} 
+                            ${isLocked ? 'opacity-30' : 'cursor-pointer hover:border-primary/50'} transition-all">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs text-primary font-bold uppercase tracking-widest">Soul #${idx + 1}</span>
+                        ${isLocked ? '<span class="material-symbols-outlined">lock</span>' : ''}
                     </div>
-                `;
-            }).join('');
-        };
-        render('story-list');
+                    <h3 class="text-xl font-bold tracking-widest">${isLocked ? '未感应的灵魂' : s.name}</h3>
+                </div>
+            `;
+        }).join('');
     }
 
     function loadStory(id) {
         state.activeId = id;
         document.getElementById('current-story-name').innerText = STORIES[id].name;
         document.getElementById('chat-box').innerHTML = `
-            <div class="max-w-4xl mx-auto bg-primary/5 border border-primary/20 p-8 rounded-3xl mb-6">
-                <p class="text-gray-400 italic text-lg leading-relaxed">${STORIES[id].intro}</p>
+            <div class="max-w-4xl mx-auto bg-primary/5 border border-primary/20 p-10 rounded-[2rem] shadow-2xl mb-10">
+                <p class="text-gray-300 italic text-xl leading-relaxed">${STORIES[id].intro}</p>
             </div>
         `;
         save();
-        renderLists();
     }
 
     function handleAsk() {
@@ -186,20 +187,17 @@
         if(!q) return;
         appendMsg('user', q);
         input.value = '';
-        setTimeout(() => appendMsg('grave', checkLogic(q)), 600);
-    }
-
-    function checkLogic(q) {
-        const s = STORIES[state.activeId];
-        const isMatch = s.keys.some(k => q.includes(k));
-        return isMatch ? "是。" : (Math.random() > 0.5 ? "不是。" : "无关。");
+        setTimeout(() => {
+            const isMatch = STORIES[state.activeId].keys.some(k => q.includes(k));
+            appendMsg('grave', isMatch ? "是。" : "不是/无关。");
+        }, 500);
     }
 
     function appendMsg(role, text) {
         const box = document.getElementById('chat-box');
         const div = document.createElement('div');
-        div.className = `flex max-w-4xl mx-auto mb-4 ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-        div.innerHTML = `<div class="${role === 'user' ? 'bg-zinc-800' : 'bg-primary/20 text-primary border border-primary/20'} px-6 py-3 rounded-2xl shadow-lg">${text}</div>`;
+        div.className = `flex max-w-4xl mx-auto mb-6 ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+        div.innerHTML = `<div class="${role === 'user' ? 'bg-zinc-800' : 'bg-primary/20 text-primary border border-primary/20'} px-8 py-4 rounded-2xl shadow-lg text-lg">${text}</div>`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
@@ -210,22 +208,16 @@
     }
 
     function unlockNextAndClose() {
-        if (state.activeId + 1 === state.unlocked && state.unlocked < STORIES.length) {
-            state.unlocked++;
-        }
+        if (state.activeId + 1 === state.unlocked && state.unlocked < STORIES.length) state.unlocked++;
         document.getElementById('modal-truth').classList.add('hidden');
         save();
-        renderLists();
     }
 
-    function save() { localStorage.setItem('soup_save_v1', JSON.stringify(state)); }
-    function updateUI() { document.getElementById('sanity-display').innerText = `SAN ${state.sanity}`; }
-    function toggleMusic() {
-        const m = document.getElementById('bg-music');
-        m.paused ? m.play() : m.pause();
-    }
+    function toggleSettings(show) { document.getElementById('settings-modal').style.display = show ? 'flex' : 'none'; }
+    function resetGame() { if(confirm("确定要抹除所有灵魂印记吗？")) { localStorage.clear(); location.reload(); } }
+    function save() { localStorage.setItem('soup_pro_v1', JSON.stringify(state)); }
+    function toggleMusic() { const m = document.getElementById('bg-music'); m.paused ? m.play() : m.pause(); }
 
-    init();
 </script>
 </body>
 </html>
