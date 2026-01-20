@@ -22,10 +22,34 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #chat-box::-webkit-scrollbar { width: 4px; }
         #chat-box::-webkit-scrollbar-thumb { background: #7311d4; border-radius: 10px; }
-        .vignette { position: absolute; inset: 0; box-shadow: inset 0 0-150px rgba(0,0,0,0.9); pointer-events: none; z-index: 10; }
+        .vignette { position: absolute; inset: 0; box-shadow: inset 0 0 150px rgba(0,0,0,0.9); pointer-events: none; z-index: 10; }
+        
+        /* 封面主界面样式 */
+        #intro-layer { transition: all 1s ease-in-out; }
+        .fade-out { opacity: 0; pointer-events: none; transform: scale(1.1); }
     </style>
 </head>
 <body class="text-gray-200 h-screen flex items-center justify-center p-0 md:p-8 bg-[url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=2000')] bg-cover bg-center">
+    
+    <div id="intro-layer" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1505832018823-50331d70d237?q=80&w=1000')] bg-cover bg-center opacity-40 grayscale"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black"></div>
+        
+        <div class="relative z-10 text-center space-y-6 px-6">
+            <div class="space-y-2">
+                <h1 class="font-title text-7xl md:text-8xl text-white tracking-widest animate-pulse">海龟汤</h1>
+                <p class="text-primary tracking-[0.6em] text-xs md:text-sm font-bold uppercase">守 墓 人 之 门</p>
+            </div>
+            
+            <div class="pt-12">
+                <button onclick="enterGame()" class="w-64 h-16 bg-primary tombstone-btn font-bold text-xl tracking-widest shadow-[0_0_30px_rgba(115,17,212,0.4)]">
+                    开启仪式
+                </button>
+                <p class="mt-4 text-white/20 text-[10px] tracking-widest">真相往往比谎言更荒诞</p>
+            </div>
+        </div>
+    </div>
+
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
 
     <div class="game-wrapper relative h-full w-full max-w-[500px] bg-zinc-950 shadow-2xl overflow-hidden z-20 flex flex-col md:flex-row">
@@ -54,10 +78,7 @@
                         守墓人的启示
                     </h4>
                     <p class="text-[11px] leading-relaxed text-gray-400">
-                        欢迎。真相只有『是』与『不是』。若无从下手，请试着探寻：<br><br>
-                        • <strong class="text-gray-200">身份：</strong>死者是谁？他们之间有恩怨吗？<br>
-                        • <strong class="text-gray-200">物品：</strong>汤面中出现的咖啡、纸条、火柴起到了什么作用？<br>
-                        • <strong class="text-gray-200">动机：</strong>他是自愿的，还是被迫的？
+                        在这里，真相只有『是』与『不是』。请探寻身份、动机与异常细节。
                     </p>
                 </div>
             </div>
@@ -100,16 +121,16 @@
 
 <script>
     const STORIES = [
-        { id: 0, name: "红色的汤", intro: "一名男子在一家高档餐厅点了一碗海龟汤。他喝了一口，面色凝重地询问店主：『这是真正的海龟汤吗？』。在得到肯定答复后，他走出店门，在倾盆大雨中自杀了。", truth: "他在荒岛吃过同伴杀掉父亲做的假汤，喝到真汤后意识到真相崩溃自杀。当年喝的是父亲的肉。", keys: ["父亲", "肉", "荒岛", "味道", "不同", "自杀", "吃人", "同伴"] },
-        { id: 1, name: "消失的领航员", intro: "船长发现副手死在紧锁的舱内。副手手里攥着一张撕碎的纸条，桌上有没喝完的热咖啡。船长看了一眼咖啡，立刻跳进了海里自杀。", truth: "副手在咖啡里下毒想害死船长夺取求生机会。纸条是绝笔信。船长意识到唯一的伙伴背叛且自己可能中毒，选择跳海。", keys: ["下毒", "毒", "遗书", "纸条", "咖啡", "救生", "背叛", "跳海"] },
-        { id: 2, name: "半张车票", intro: "男人从火车窗口看了一眼，随后惊恐跳车。此时火车正行驶在漫长的隧道边缘。", truth: "男人刚动完眼科手术复明。进入黑暗隧道后他以为手术失败再次失明，绝望之下跳车自杀。", keys: ["复明", "失明", "眼睛", "手术", "隧道", "黑暗", "火车"] },
-        { id: 3, name: "阁楼的敲击声", intro: "独居女每晚听阁楼敲击声却从不报警。直到某天声响彻底停止，她走进阁楼后也选择了自杀。", truth: "她囚禁了恋人。敲击声是求救。声停代表恋人饿死，她在愧疚中随之而去。", keys: ["囚禁", "恋人", "求救", "饿死", "自杀", "关"] },
-        { id: 4, name: "完美的合照", intro: "全家福合照中小明在哭。第二天，除了小明，全家人都死在了餐桌旁。", truth: "全家拍照前已煤气中毒身亡。小明用支架固定家人的尸体拍照，他哭是因为极度恐惧。", keys: ["尸体", "死人", "支架", "固定", "恐惧", "煤气"] },
-        { id: 5, name: "只有一半的救生圈", intro: "海面漂着半个救生圈和一具抓着枪的尸体。死者死于溺水，但手里攥着左轮枪。", truth: "两人抽签决生死。死者输了，开枪自杀没中，最终在溺水中痛苦死去。", keys: ["抽签", "自杀", "开枪", "输", "左轮", "赌博"] },
-        { id: 6, name: "致命的广播", intro: "电台主持人在直播间突然停止讲话。随后他在房间内自杀。邻居说当晚广播里的音乐异常刺耳。", truth: "主持人杀妻后伪造直播录音。但他发现录音带里录进了妻子的求救声，知道穿帮后选择自杀。", keys: ["杀人", "妻子", "录音", "穿帮", "证据", "求救"] },
-        { id: 7, name: "盲人的礼物", intro: "盲人摸到礼盒内物件后，全身颤抖将其扔进垃圾桶。", truth: "盲人曾食人肉求生。礼物是朋友生前寄来的断臂，他摸到了熟悉的手表，明白当年吃了什么。", keys: ["手臂", "手", "肉", "手表", "熟悉", "朋友", "吃人"] },
-        { id: 8, name: "最后一根火柴", intro: "雪地赤裸男尸，手攥烧过的短火柴，周围无脚印。", truth: "热气球超重。几人抽签决定谁跳下。死者抽到短火柴，被迫赤裸跳下减重身亡。", keys: ["热气球", "抽签", "火柴", "重量", "跳", "高度"] },
-        { id: 9, name: "深夜的电梯", intro: "男人看了一眼电梯镜子，疯狂跑出电梯并倒地身亡。", truth: "镜子里反映出男人身后躲着杀人犯。男人在镜中看到刀尖，死于惊吓引发的心脏病。", keys: ["镜子", "背后", "杀人犯", "影子", "心脏病", "镜子"] }
+        { id: 0, name: "红色的汤", intro: "一名男子在餐厅喝了一口海龟汤，确认是真汤后，在雨中自杀了。", truth: "他在荒岛吃过同伴杀掉父亲做的假汤，喝到真汤后明白那是父亲的肉，崩溃自杀。", keys: ["父亲", "肉", "荒岛", "味道", "不同", "自杀", "吃人", "同伴"] },
+        { id: 1, name: "消失的领航员", intro: "船长发现副手死在驾驶舱，手里抓着碎纸，桌上有咖啡。船长看了一眼立刻跳海。", truth: "副手在咖啡里下毒夺取生路，纸条是绝笔。船长见状明白伙伴背叛，万念俱灰跳海。", keys: ["下毒", "毒", "遗书", "纸条", "咖啡", "救生", "背叛", "跳海"] },
+        { id: 2, name: "半张车票", intro: "男人看了一眼车窗外风景瞬间惊恐，随即在隧道边缘跳车身亡。", truth: "男人刚复明，进入隧道以为手术失败再次失明，绝望跳车。", keys: ["复明", "失明", "眼睛", "手术", "隧道", "黑暗"] },
+        { id: 3, name: "阁楼敲击声", intro: "女人每晚听阁楼敲击声却不报警，声响停后她自杀了。", truth: "她囚禁恋人，敲击是求救，声停代表恋人饿死，她在愧疚中随之而去。", keys: ["囚禁", "恋人", "求救", "饿死", "自杀"] },
+        { id: 4, name: "完美的合照", intro: "全家福里小明在哭。第二天，全家人除小明外都死在餐桌旁。", truth: "全家因煤气中毒已亡，小明用支架固定尸体合照，哭是因为极度恐惧。", keys: ["尸体", "支架", "固定", "恐惧", "煤气"] },
+        { id: 5, name: "半个救生圈", intro: "海面漂着半个救生圈和一具抓着枪的尸体，死者死于溺水。", truth: "两人抽签决生死，死者输了，开枪自杀未遂最后溺毙。", keys: ["抽签", "自杀", "开枪", "输", "左轮"] },
+        { id: 6, name: "致命的广播", intro: "主持人在直播间自杀，当晚广播音乐异常刺耳。", truth: "他杀妻伪造直播，但录音带录进求救声，他知道穿帮后自杀。", keys: ["杀人", "妻子", "录音", "穿帮", "证据", "求救"] },
+        { id: 7, name: "盲人的礼物", intro: "盲人摸到礼盒内物件后扔进垃圾桶，全身颤抖。", truth: "他曾食人肉求生。礼物是朋友的断臂，他摸到了熟悉的手表。", keys: ["手臂", "肉", "手表", "熟悉", "朋友", "吃人"] },
+        { id: 8, name: "最后火柴", intro: "雪地赤裸男尸攥着短火柴，周围一公里无脚印。", truth: "热气球超重，死者抽签抽到短火柴，被迫跳下减重。", keys: ["热气球", "抽签", "火柴", "跳", "高度"] },
+        { id: 9, name: "深夜电梯", intro: "男人看了一眼电梯镜子，跑出电梯后倒地身亡。", truth: "镜子里反映出男人身后躲着杀人犯。男人受惊引发心脏病死亡。", keys: ["镜子", "背后", "杀人犯", "影子", "心脏病"] }
     ];
 
     let state = JSON.parse(localStorage.getItem('soup_v4')) || { sanity: 100, activeId: 0, unlocked: 1 };
@@ -119,6 +140,13 @@
         renderLists();
         updateUI();
         if(state.activeId !== null) selectStory(state.activeId);
+    }
+
+    // 进入游戏逻辑
+    function enterGame() {
+        document.getElementById('intro-layer').classList.add('fade-out');
+        const m = document.getElementById('bg-music');
+        m.play().catch(() => console.log("等待交互触发音频"));
     }
 
     function renderLists() {
@@ -132,7 +160,6 @@
                                 ${isLocked ? 'opacity-20 grayscale cursor-not-allowed' : 'cursor-pointer hover:border-primary/50'} transition-all shadow-lg">
                         <div class="flex justify-between items-center text-xs">
                             <span class="font-bold tracking-widest">${isLocked ? '未觉醒的灵魂' : s.name}</span>
-                            ${isLocked ? '<span class="material-symbols-outlined text-[10px]">lock</span>' : ''}
                         </div>
                     </div>
                 `;
@@ -160,12 +187,10 @@
         const input = document.getElementById('user-input');
         const q = input.value.trim();
         if(!q || state.sanity < 5) return;
-
         appendMsg('user', q);
         input.value = '';
         state.sanity -= 5;
         updateUI();
-
         document.getElementById('typing-indicator').classList.remove('hidden');
         setTimeout(() => {
             document.getElementById('typing-indicator').classList.add('hidden');
@@ -183,11 +208,9 @@
             wrongCount++;
             if(wrongCount >= 4) {
                 wrongCount = 0;
-                const hint = s.keys[Math.floor(Math.random()*s.keys.length)];
-                return "无关。守墓人的低语：去关注一下『" + hint + "』相关的事宜。";
+                return "无关。提示：关注一下『" + s.keys[Math.floor(Math.random()*s.keys.length)] + "』。";
             }
-            const randomMiss = ["不是。", "无关。", "这不重要。", "并无联系。"];
-            return randomMiss[Math.floor(Math.random()*randomMiss.length)];
+            return "无关。";
         }
     }
 
