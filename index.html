@@ -3,214 +3,230 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap" rel="stylesheet"/>
+    <title>海龟汤：守墓人之门</title>
     <link rel="manifest" href="manifest.json">
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: { "primary": "#7311d4", "background-dark": "#0a0a0a" },
-                    fontFamily: { "display": ["Newsreader", "serif"] }
-                },
-            },
-        }
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700" rel="stylesheet"/>
     <style>
-        button, .cursor-pointer { cursor: pointer !important; }
-        .tombstone-shape { clip-path: polygon(15% 0%, 85% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .tombstone-shape:hover:not(:disabled) { filter: brightness(1.2); transform: translateY(-2px); }
-        .page-layer { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); position: absolute; inset: 0; background: #0a0a0a; }
-        .page-hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
-        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .animate-flame { animation: flicker 2s infinite ease-in-out; }
+        body { background-color: #000; font-family: 'Noto Serif SC', serif; overflow: hidden; }
+        .tombstone-btn { clip-path: polygon(10% 0%, 90% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%); transition: 0.3s; }
+        .tombstone-btn:hover:not(:disabled) { filter: brightness(1.4); transform: translateY(-3px); }
+        
+        @media (min-width: 1024px) {
+            .game-wrapper { display: grid; grid-template-columns: 380px 1fr; gap: 0; max-width: 1400px; height: 90vh; border-radius: 24px; border: 1px solid rgba(115,17,212,0.2); }
+            .side-library { display: flex !important; border-right: 1px solid rgba(255,255,255,0.05); }
+        }
+
+        .chat-msg { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #chat-box::-webkit-scrollbar { width: 4px; }
-        #chat-box::-webkit-scrollbar-thumb { background: rgba(115, 17, 212, 0.3); border-radius: 10px; }
-        body { user-select: none; -webkit-user-select: none; }
-        input { user-select: text; -webkit-user-select: text; }
+        #chat-box::-webkit-scrollbar-thumb { background: #7311d4; border-radius: 10px; }
+        .vignette { position: absolute; inset: 0; box-shadow: inset 0 0-150px rgba(0,0,0,0.9); pointer-events: none; z-index: 10; }
     </style>
 </head>
-<body class="bg-[#121212] font-display text-white overflow-hidden flex justify-center">
+<body class="text-gray-200 h-screen flex items-center justify-center p-0 md:p-8 bg-[url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=2000')] bg-cover bg-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
 
-<div class="relative h-screen w-full max-w-[430px] shadow-2xl bg-background-dark border-x border-white/5">
+    <div class="game-wrapper relative h-full w-full max-w-[500px] bg-zinc-950 shadow-2xl overflow-hidden z-20 flex flex-col md:flex-row">
+        <div class="vignette"></div>
 
-    <div id="page-main" class="page-layer z-10">
-        <div class="absolute inset-0 bg-cover bg-center grayscale opacity-40" style="background-image: url('https://images.unsplash.com/photo-1505832018823-50331d70d237?q=80&w=1000')"></div>
-        <div class="relative z-20 flex flex-col h-full p-6">
-            <div class="flex justify-between items-center">
-                <button onclick="resetGame()" class="text-[9px] text-white/20 hover:text-white border border-white/10 px-2 py-1 rounded">重置数据</button>
-                <div class="bg-black/40 px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-orange-400 text-sm animate-flame">local_fire_department</span>
-                    <span id="sanity-display" class="text-xs font-bold">Sanity: 100</span>
+        <div id="side-lib" class="side-library hidden w-[380px] bg-black/40 flex-col p-6 z-30 overflow-y-auto">
+            <h2 class="font-title text-3xl text-primary mb-8 tracking-widest">灵魂图书馆</h2>
+            <div id="story-list" class="space-y-4"></div>
+        </div>
+
+        <div class="flex-grow flex flex-col relative">
+            <div class="p-5 flex justify-between items-center bg-black/60 border-b border-white/5 z-30">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleMusic()" class="material-symbols-outlined text-primary text-xl">music_note</button>
+                    <h3 id="current-story-name" class="font-bold text-sm tracking-widest text-gray-400 italic">请翻阅灵魂...</h3>
+                </div>
+                <div class="text-right">
+                    <span id="sanity-display" class="text-xs font-black text-primary">SAN 100</span>
                 </div>
             </div>
-            <div class="mt-20 text-center">
-                <h1 class="text-5xl font-black italic mb-2 tracking-tighter">Turtle Soup</h1>
-                <p class="text-primary text-[10px] tracking-[0.4em] uppercase font-bold">Gravekeeper's Gate</p>
+
+            <div id="chat-box" class="flex-grow p-6 overflow-y-auto space-y-6 z-20 relative">
+                <div class="chat-msg bg-primary/10 border border-primary/20 p-6 rounded-2xl">
+                    <h4 class="text-primary font-bold mb-2 flex items-center gap-2 text-sm">
+                        <span class="material-symbols-outlined text-sm">auto_stories</span>
+                        守墓人的启示
+                    </h4>
+                    <p class="text-[11px] leading-relaxed text-gray-400">
+                        欢迎。真相只有『是』与『不是』。若无从下手，请试着探寻：<br><br>
+                        • <strong class="text-gray-200">身份：</strong>死者是谁？他们之间有恩怨吗？<br>
+                        • <strong class="text-gray-200">物品：</strong>汤面中出现的咖啡、纸条、火柴起到了什么作用？<br>
+                        • <strong class="text-gray-200">动机：</strong>他是自愿的，还是被迫的？
+                    </p>
+                </div>
             </div>
-            <div class="mt-auto mb-10 space-y-4">
-                <button onclick="startActiveStory()" class="w-full h-20 bg-primary/90 tombstone-shape font-bold italic uppercase text-lg hover:shadow-[0_0_20px_rgba(115,17,212,0.4)]">继续仪式</button>
-                <button onclick="showPage('page-library')" class="w-full h-16 bg-white/5 border-t border-white/10 tombstone-shape font-bold uppercase text-sm text-white/60">灵魂图书馆</button>
+
+            <div id="typing-indicator" class="hidden px-8 py-2 text-[10px] text-primary animate-pulse italic z-20">正在审视灵魂...</div>
+
+            <div class="p-6 bg-zinc-900/90 border-t border-white/5 z-30 backdrop-blur-md">
+                <div class="relative flex gap-2">
+                    <input id="user-input" type="text" placeholder="向虚空提问..." 
+                           class="flex-grow bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm focus:outline-none focus:border-primary transition-all">
+                    <button onclick="handleAsk()" class="bg-primary px-4 rounded-xl hover:scale-105 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+                <div class="flex justify-between mt-4">
+                    <button onclick="confirmTruth()" class="text-[9px] font-bold text-primary tracking-[0.2em] uppercase hover:text-white">提交最终真相</button>
+                    <button onclick="showLibraryMobile()" class="md:hidden text-[9px] text-white/40 uppercase font-bold tracking-widest">翻阅灵魂</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="page-library" class="page-layer page-hidden z-20 p-8 flex flex-col">
+    <div id="mobile-lib" class="fixed inset-0 z-[100] bg-black/95 p-8 hidden flex flex-col">
         <div class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-bold italic text-primary">Library</h2>
-            <button onclick="showPage('page-main')" class="material-symbols-outlined text-white/40">close</button>
+            <h2 class="font-title text-4xl text-primary">灵魂图书馆</h2>
+            <button onclick="hideLibraryMobile()" class="material-symbols-outlined text-3xl text-white/40">close</button>
         </div>
-        <div id="story-list" class="space-y-4 flex-grow overflow-y-auto pr-2"></div>
+        <div id="story-list-mobile" class="space-y-4 overflow-y-auto"></div>
     </div>
 
-    <div id="page-ritual" class="page-layer page-hidden z-30 flex flex-col">
-        <div class="p-6 border-b border-white/5 flex justify-between items-center">
-            <h2 id="current-story-name" class="font-bold italic text-primary text-xl">---</h2>
-            <button onclick="showPage('page-main')" class="material-symbols-outlined text-white/20">close</button>
-        </div>
-        <div id="chat-box" class="flex-grow p-6 overflow-y-auto space-y-4"></div>
-        <div id="typing-indicator" class="hidden px-6 py-2 text-[10px] text-primary italic">灵魂低语中...</div>
-        <div class="p-4 bg-black/80 border-t border-white/10">
-            <div class="flex gap-2 mb-3">
-                <input id="user-input" type="text" autocomplete="off" placeholder="输入你的疑问..." class="flex-grow bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-primary">
-                <button onclick="handleAsk()" class="bg-primary px-4 rounded-lg active:scale-95 transition-all"><span class="material-symbols-outlined">send</span></button>
-            </div>
-            <button onclick="confirmTruth()" class="w-full py-2 text-[10px] font-black tracking-[0.4em] uppercase text-primary border border-primary/40 rounded-lg">提交真相</button>
+    <div id="modal-truth" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+        <div class="bg-zinc-900 border border-primary/30 p-8 rounded-3xl max-w-lg w-full">
+            <h2 class="font-title text-3xl text-primary mb-6 text-center tracking-widest">真相揭晓</h2>
+            <div id="truth-content" class="text-gray-300 text-sm leading-relaxed italic mb-8 bg-white/5 p-5 rounded-xl border border-white/5"></div>
+            <button onclick="closeTruthModal()" class="w-full py-4 bg-primary rounded-xl font-bold tracking-[0.4em]">吸纳此魂并继续</button>
         </div>
     </div>
 
-    <div id="page-truth" class="page-layer page-hidden z-40 flex items-center justify-center p-8 bg-black/95">
-        <div class="text-center">
-            <span class="material-symbols-outlined text-6xl text-primary mb-6 animate-bounce">auto_awesome</span>
-            <h2 class="text-3xl font-black italic mb-4">真相大白</h2>
-            <div id="truth-content" class="bg-white/5 p-6 rounded-xl border border-white/10 mb-8 text-sm text-white/70 leading-relaxed italic text-left"></div>
-            <button onclick="unlockNextAndReturn()" class="w-full py-4 bg-primary font-bold uppercase rounded-xl">吸纳残魂 (恢复理智)</button>
-        </div>
-    </div>
-</div>
+    <audio id="bg-music" loop src="https://assets.mixkit.co/music/preview/mixkit-horror-atmosphere-551.mp3"></audio>
 
 <script>
-    // 10 个关卡数据库
     const STORIES = [
-        { id: 0, name: "红色的汤", intro: "男人喝了一碗海龟汤，走出店门后却自杀了。", truth: "他在荒岛吃过同伴杀掉父亲做的假汤，喝到真汤后意识到真相崩溃自杀。", keys: ["人肉","父亲","爸爸","肉","荒岛","味道","不同"] },
-        { id: 1, name: "半张车票", intro: "男人从火车窗口看了一眼，随后跳车身亡。", truth: "他刚复明，火车进隧道让他以为又失明了，绝望跳车。", keys: ["隧道","复明","失明","黑暗","眼睛","手术"] },
-        { id: 2, name: "阁楼敲击声", intro: "独居女听阁楼敲击声多年不敢报警，声响停后她自杀了。", truth: "她囚禁了恋人，敲击是求救，声停代表恋人死了，她随之而去。", keys: ["囚禁","关","恋人","男朋友","救命","死"] },
-        { id: 3, name: "完美的合照", intro: "合照中小明在哭。第二天，除了小明，全家人都死了。", truth: "全家人照相前就死了，小明用支架固定尸体合影，他哭是因为恐惧。", keys: ["尸体","死人","支架","固定","恐惧","害怕"] },
-        { id: 4, name: "救生圈", intro: "海面漂着半个救生圈和一具抓着枪的尸体，死于溺水。", truth: "两人抽签决生死，死者输了，开枪自杀后掉入海中。", keys: ["抽签","自杀","开枪","输","决斗"] },
-        { id: 5, name: "致命广播", intro: "主持人在直播时突然关掉麦克风自杀了。", truth: "他杀了妻子并伪造抢劫，结果直播里播出了背景音乐（录音带），他知道穿帮了。", keys: ["杀人","妻子","录音","音乐","穿帮","现场"] },
-        { id: 6, name: "盲人的礼物", intro: "盲人摸了朋友寄来的礼物，脸色惨白扔掉。", truth: "盲人曾食朋友肉求生，礼物是朋友生前寄来的另一只断臂，他摸到了熟悉的手表。", keys: ["手臂","手","吃","肉","手表","熟悉"] },
-        { id: 7, name: "不存在的邻居", intro: "小美每天和邻居老太打招呼，结果老太已死十年。", truth: "小美看的是反光镜里的自己，老太是她的精神分裂幻想。", keys: ["镜子","反光","幻想","精神","分裂","自己"] },
-        { id: 8, name: "最后一根火柴", intro: "雪地赤裸尸体，手里攥着烧过的火柴，无脚印。", truth: "热气球超重坠毁，大家抽签，死者抽到短火柴必须跳下减重。", keys: ["热气球","抽签","火柴","重量","跳"] },
-        { id: 9, name: "深夜电梯", intro: "男人看了一眼电梯镜子，立刻冲出跑向楼梯。", truth: "镜子里反映出男人身后躲着一个只有镜中可见的怪物/杀人犯。", keys: ["镜子","背后","杀人犯","躲","影子","怪物"] }
+        { id: 0, name: "红色的汤", intro: "一名男子在一家高档餐厅点了一碗海龟汤。他喝了一口，面色凝重地询问店主：『这是真正的海龟汤吗？』。在得到肯定答复后，他走出店门，在倾盆大雨中自杀了。", truth: "他在荒岛吃过同伴杀掉父亲做的假汤，喝到真汤后意识到真相崩溃自杀。当年喝的是父亲的肉。", keys: ["父亲", "肉", "荒岛", "味道", "不同", "自杀", "吃人", "同伴"] },
+        { id: 1, name: "消失的领航员", intro: "船长发现副手死在紧锁的舱内。副手手里攥着一张撕碎的纸条，桌上有没喝完的热咖啡。船长看了一眼咖啡，立刻跳进了海里自杀。", truth: "副手在咖啡里下毒想害死船长夺取求生机会。纸条是绝笔信。船长意识到唯一的伙伴背叛且自己可能中毒，选择跳海。", keys: ["下毒", "毒", "遗书", "纸条", "咖啡", "救生", "背叛", "跳海"] },
+        { id: 2, name: "半张车票", intro: "男人从火车窗口看了一眼，随后惊恐跳车。此时火车正行驶在漫长的隧道边缘。", truth: "男人刚动完眼科手术复明。进入黑暗隧道后他以为手术失败再次失明，绝望之下跳车自杀。", keys: ["复明", "失明", "眼睛", "手术", "隧道", "黑暗", "火车"] },
+        { id: 3, name: "阁楼的敲击声", intro: "独居女每晚听阁楼敲击声却从不报警。直到某天声响彻底停止，她走进阁楼后也选择了自杀。", truth: "她囚禁了恋人。敲击声是求救。声停代表恋人饿死，她在愧疚中随之而去。", keys: ["囚禁", "恋人", "求救", "饿死", "自杀", "关"] },
+        { id: 4, name: "完美的合照", intro: "全家福合照中小明在哭。第二天，除了小明，全家人都死在了餐桌旁。", truth: "全家拍照前已煤气中毒身亡。小明用支架固定家人的尸体拍照，他哭是因为极度恐惧。", keys: ["尸体", "死人", "支架", "固定", "恐惧", "煤气"] },
+        { id: 5, name: "只有一半的救生圈", intro: "海面漂着半个救生圈和一具抓着枪的尸体。死者死于溺水，但手里攥着左轮枪。", truth: "两人抽签决生死。死者输了，开枪自杀没中，最终在溺水中痛苦死去。", keys: ["抽签", "自杀", "开枪", "输", "左轮", "赌博"] },
+        { id: 6, name: "致命的广播", intro: "电台主持人在直播间突然停止讲话。随后他在房间内自杀。邻居说当晚广播里的音乐异常刺耳。", truth: "主持人杀妻后伪造直播录音。但他发现录音带里录进了妻子的求救声，知道穿帮后选择自杀。", keys: ["杀人", "妻子", "录音", "穿帮", "证据", "求救"] },
+        { id: 7, name: "盲人的礼物", intro: "盲人摸到礼盒内物件后，全身颤抖将其扔进垃圾桶。", truth: "盲人曾食人肉求生。礼物是朋友生前寄来的断臂，他摸到了熟悉的手表，明白当年吃了什么。", keys: ["手臂", "手", "肉", "手表", "熟悉", "朋友", "吃人"] },
+        { id: 8, name: "最后一根火柴", intro: "雪地赤裸男尸，手攥烧过的短火柴，周围无脚印。", truth: "热气球超重。几人抽签决定谁跳下。死者抽到短火柴，被迫赤裸跳下减重身亡。", keys: ["热气球", "抽签", "火柴", "重量", "跳", "高度"] },
+        { id: 9, name: "深夜的电梯", intro: "男人看了一眼电梯镜子，疯狂跑出电梯并倒地身亡。", truth: "镜子里反映出男人身后躲着杀人犯。男人在镜中看到刀尖，死于惊吓引发的心脏病。", keys: ["镜子", "背后", "杀人犯", "影子", "心脏病", "镜子"] }
     ];
 
-    let gameState = JSON.parse(localStorage.getItem('turtle_soup_v2')) || {
-        sanity: 100,
-        activeStoryId: 0,
-        unlockedCount: 1 
-    };
+    let state = JSON.parse(localStorage.getItem('soup_v4')) || { sanity: 100, activeId: 0, unlocked: 1 };
+    let wrongCount = 0;
 
-    function save() {
-        localStorage.setItem('turtle_soup_v2', JSON.stringify(gameState));
-        document.getElementById('sanity-display').innerText = `Sanity: ${Math.floor(gameState.sanity)}`;
+    function init() {
+        renderLists();
+        updateUI();
+        if(state.activeId !== null) selectStory(state.activeId);
     }
 
-    function showPage(id) {
-        document.querySelectorAll('.page-layer').forEach(p => p.classList.add('page-hidden'));
-        document.getElementById(id).classList.remove('page-hidden');
-    }
-
-    function initLibrary() {
-        const list = document.getElementById('story-list');
-        list.innerHTML = STORIES.map((s, idx) => {
-            const isLocked = idx >= gameState.unlockedCount;
-            return `
-                <div onclick="${isLocked ? '' : `selectStory(${idx})`}" class="p-5 border ${isLocked ? 'border-white/5 opacity-30 cursor-not-allowed' : 'border-primary bg-white/5 cursor-pointer'} rounded-xl transition-all">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-bold">${isLocked ? '已封印的灵魂' : s.name}</h3>
-                        ${isLocked ? '<span class="material-symbols-outlined text-sm">lock</span>' : ''}
+    function renderLists() {
+        const renderFunc = (containerId) => {
+            const list = document.getElementById(containerId);
+            list.innerHTML = STORIES.map((s, idx) => {
+                const isLocked = idx >= state.unlocked;
+                return `
+                    <div onclick="${isLocked ? '' : `selectStory(${idx}); hideLibraryMobile();`}" 
+                         class="p-4 rounded-xl border ${idx === state.activeId ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5'} 
+                                ${isLocked ? 'opacity-20 grayscale cursor-not-allowed' : 'cursor-pointer hover:border-primary/50'} transition-all shadow-lg">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold tracking-widest">${isLocked ? '未觉醒的灵魂' : s.name}</span>
+                            ${isLocked ? '<span class="material-symbols-outlined text-[10px]">lock</span>' : ''}
+                        </div>
                     </div>
-                    <p class="text-[10px] text-white/40 mt-1">${isLocked ? '解开前面的谜题以解锁' : s.intro}</p>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+        };
+        renderFunc('story-list');
+        renderFunc('story-list-mobile');
     }
 
     function selectStory(id) {
-        gameState.activeStoryId = id;
+        state.activeId = id;
+        const s = STORIES[id];
+        document.getElementById('current-story-name').innerText = s.name;
+        document.getElementById('chat-box').innerHTML += `
+            <div class="chat-msg bg-white/5 border-l-2 border-primary p-5 rounded-r-xl text-xs italic text-gray-300 leading-relaxed">
+                <span class="text-primary font-bold not-italic text-[10px] block mb-2 underline tracking-widest uppercase">New Mystery</span>
+                ${s.intro}
+            </div>
+        `;
         save();
-        initLibrary();
-        showPage('page-ritual');
-        document.getElementById('current-story-name').innerText = STORIES[id].name;
-        document.getElementById('chat-box').innerHTML = `<div class="bg-primary/10 border-l-2 border-primary p-4 text-sm italic text-white/80">${STORIES[id].intro}</div>`;
+        renderLists();
     }
-
-    function startActiveStory() { selectStory(gameState.activeStoryId); }
 
     function handleAsk() {
         const input = document.getElementById('user-input');
-        const text = input.value.trim();
-        if(!text || gameState.sanity < 5) return;
+        const q = input.value.trim();
+        if(!q || state.sanity < 5) return;
 
-        appendMsg('user', text);
+        appendMsg('user', q);
         input.value = '';
-        gameState.sanity -= 5;
-        save();
+        state.sanity -= 5;
+        updateUI();
 
         document.getElementById('typing-indicator').classList.remove('hidden');
         setTimeout(() => {
             document.getElementById('typing-indicator').classList.add('hidden');
-            appendMsg('grave', getResponse(text));
+            appendMsg('grave', getAIResponse(q));
         }, 800);
     }
 
-    function getResponse(q) {
-        const story = STORIES[gameState.activeStoryId];
-        for(let k of story.keys) if(q.includes(k)) return "是。";
-        return Math.random() > 0.6 ? "不是。" : "无关。";
+    function getAIResponse(q) {
+        const s = STORIES[state.activeId];
+        const isRelated = s.keys.some(k => q.includes(k));
+        if (isRelated) {
+            wrongCount = 0;
+            return "是。";
+        } else {
+            wrongCount++;
+            if(wrongCount >= 4) {
+                wrongCount = 0;
+                const hint = s.keys[Math.floor(Math.random()*s.keys.length)];
+                return "无关。守墓人的低语：去关注一下『" + hint + "』相关的事宜。";
+            }
+            const randomMiss = ["不是。", "无关。", "这不重要。", "并无联系。"];
+            return randomMiss[Math.floor(Math.random()*randomMiss.length)];
+        }
     }
 
     function appendMsg(role, text) {
-        const div = document.createElement('div');
-        div.className = role === 'user' ? "flex justify-end" : "flex justify-start";
-        div.innerHTML = `<div class="${role === 'user' ? 'bg-white/10' : 'bg-primary/20 text-primary font-bold'} px-4 py-2 rounded-xl text-sm max-w-[85%]">${text}</div>`;
         const box = document.getElementById('chat-box');
+        const div = document.createElement('div');
+        div.className = `chat-msg flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+        div.innerHTML = `<div class="${role === 'user' ? 'bg-zinc-800' : 'bg-primary/20 text-primary border border-primary/20'} px-4 py-2 rounded-2xl text-[11px] max-w-[85%] shadow-sm">${text}</div>`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
     function confirmTruth() {
-        if(confirm("你要在此提交真相吗？")) {
-            document.getElementById('truth-content').innerText = STORIES[gameState.activeStoryId].truth;
-            showPage('page-truth');
-        }
+        document.getElementById('truth-content').innerText = STORIES[state.activeId].truth;
+        document.getElementById('modal-truth').classList.remove('hidden');
     }
 
-    function unlockNextAndReturn() {
-        // 解锁下一关逻辑
-        if (gameState.activeStoryId + 1 === gameState.unlockedCount && gameState.unlockedCount < STORIES.length) {
-            gameState.unlockedCount++;
-        }
-        // 恢复理智值
-        gameState.sanity = Math.min(100, gameState.sanity + 40);
+    function closeTruthModal() {
+        document.getElementById('modal-truth').classList.add('hidden');
+        if (state.activeId + 1 === state.unlocked && state.unlocked < STORIES.length) state.unlocked++;
+        state.sanity = Math.min(100, state.sanity + 30);
         save();
-        initLibrary();
-        showPage('page-main');
+        renderLists();
     }
 
-    function resetGame() { if(confirm("重置所有进度？")) { localStorage.clear(); location.reload(); } }
+    function updateUI() {
+        document.getElementById('sanity-display').innerText = `SAN ${Math.floor(state.sanity)}`;
+        save();
+    }
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !document.getElementById('page-ritual').classList.contains('page-hidden')) {
-            const input = document.getElementById('user-input');
-            if (document.activeElement !== input) input.focus(); else handleAsk();
-        }
-    });
+    function save() { localStorage.setItem('soup_v4', JSON.stringify(state)); }
+    function toggleMusic() {
+        const m = document.getElementById('bg-music');
+        m.paused ? m.play() : m.pause();
+    }
+    function showLibraryMobile() { document.getElementById('mobile-lib').classList.remove('hidden'); }
+    function hideLibraryMobile() { document.getElementById('mobile-lib').classList.add('hidden'); }
 
-    save();
-    initLibrary();
+    init();
 </script>
 </body>
 </html>
