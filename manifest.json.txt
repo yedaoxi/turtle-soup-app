@@ -1,0 +1,16 @@
+{
+  "name": "海龟汤：守墓人之门",
+  "short_name": "海龟汤",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#7311d4",
+  "description": "沉浸式情境推理游戏",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1155/1155317.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

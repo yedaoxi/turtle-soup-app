@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap" rel="stylesheet"/>
+    <link rel="manifest" href="manifest.json">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { "primary": "#7311d4", "background-dark": "#0a0a0a" },
+                    fontFamily: { "display": ["Newsreader", "serif"] }
+                },
+            },
+        }
+    </script>
+    <style>
+        button, .cursor-pointer { cursor: pointer !important; }
+        .tombstone-shape { clip-path: polygon(15% 0%, 85% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tombstone-shape:hover:not(:disabled) { filter: brightness(1.2); transform: translateY(-2px); }
+        .page-layer { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); position: absolute; inset: 0; background: #0a0a0a; }
+        .page-hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-flame { animation: flicker 2s infinite ease-in-out; }
+        #chat-box::-webkit-scrollbar { width: 4px; }
+        #chat-box::-webkit-scrollbar-thumb { background: rgba(115, 17, 212, 0.3); border-radius: 10px; }
+        body { user-select: none; -webkit-user-select: none; }
+        input { user-select: text; -webkit-user-select: text; }
+    </style>
+</head>
+<body class="bg-[#121212] font-display text-white overflow-hidden flex justify-center">
+
+<div class="relative h-screen w-full max-w-[430px] shadow-2xl bg-background-dark border-x border-white/5">
+
+    <div id="page-main" class="page-layer z-10">
+        <div class="absolute inset-0 bg-cover bg-center grayscale opacity-40" style="background-image: url('https://images.unsplash.com/photo-1505832018823-50331d70d237?q=80&w=1000')"></div>
+        <div class="relative z-20 flex flex-col h-full p-6">
+            <div class="flex justify-between items-center">
+                <button onclick="resetGame()" class="text-[9px] text-white/20 hover:text-white border border-white/10 px-2 py-1 rounded">重置数据</button>
+                <div class="bg-black/40 px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-orange-400 text-sm animate-flame">local_fire_department</span>
+                    <span id="sanity-display" class="text-xs font-bold">Sanity: 100</span>
+                </div>
+            </div>
+            <div class="mt-20 text-center">
+                <h1 class="text-5xl font-black italic mb-2 tracking-tighter">Turtle Soup</h1>
+                <p class="text-primary text-[10px] tracking-[0.4em] uppercase font-bold">Gravekeeper's Gate</p>
+            </div>
+            <div class="mt-auto mb-10 space-y-4">
+                <button onclick="startActiveStory()" class="w-full h-20 bg-primary/90 tombstone-shape font-bold italic uppercase text-lg hover:shadow-[0_0_20px_rgba(115,17,212,0.4)]">继续仪式</button>
+                <button onclick="showPage('page-library')" class="w-full h-16 bg-white/5 border-t border-white/10 tombstone-shape font-bold uppercase text-sm text-white/60">灵魂图书馆</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-library" class="page-layer page-hidden z-20 p-8 flex flex-col">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold italic text-primary">Library</h2>
+            <button onclick="showPage('page-main')" class="material-symbols-outlined text-white/40">close</button>
+        </div>
+        <div id="story-list" class="space-y-4 flex-grow overflow-y-auto pr-2"></div>
+    </div>
+
+    <div id="page-ritual" class="page-layer page-hidden z-30 flex flex-col">
+        <div class="p-6 border-b border-white/5 flex justify-between items-center">
+            <h2 id="current-story-name" class="font-bold italic text-primary text-xl">---</h2>
+            <button onclick="showPage('page-main')" class="material-symbols-outlined text-white/20">close</button>
+        </div>
+        <div id="chat-box" class="flex-grow p-6 overflow-y-auto space-y-4"></div>
+        <div id="typing-indicator" class="hidden px-6 py-2 text-[10px] text-primary italic">灵魂低语中...</div>
+        <div class="p-4 bg-black/80 border-t border-white/10">
+            <div class="flex gap-2 mb-3">
+                <input id="user-input" type="text" autocomplete="off" placeholder="输入你的疑问..." class="flex-grow bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-primary">
+                <button onclick="handleAsk()" class="bg-primary px-4 rounded-lg active:scale-95 transition-all"><span class="material-symbols-outlined">send</span></button>
+            </div>
+            <button onclick="confirmTruth()" class="w-full py-2 text-[10px] font-black tracking-[0.4em] uppercase text-primary border border-primary/40 rounded-lg">提交真相</button>
+        </div>
+    </div>
+
+    <div id="page-truth" class="page-layer page-hidden z-40 flex items-center justify-center p-8 bg-black/95">
+        <div class="text-center">
+            <span class="material-symbols-outlined text-6xl text-primary mb-6 animate-bounce">auto_awesome</span>
+            <h2 class="text-3xl font-black italic mb-4">真相大白</h2>
+            <div id="truth-content" class="bg-white/5 p-6 rounded-xl border border-white/10 mb-8 text-sm text-white/70 leading-relaxed italic text-left"></div>
+            <button onclick="unlockNextAndReturn()" class="w-full py-4 bg-primary font-bold uppercase rounded-xl">吸纳残魂 (恢复理智)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 10 个关卡数据库
+    const STORIES = [
+        { id: 0, name: "红色的汤", intro: "男人喝了一碗海龟汤，走出店门后却自杀了。", truth: "他在荒岛吃过同伴杀掉父亲做的假汤，喝到真汤后意识到真相崩溃自杀。", keys: ["人肉","父亲","爸爸","肉","荒岛","味道","不同"] },
+        { id: 1, name: "半张车票", intro: "男人从火车窗口看了一眼，随后跳车身亡。", truth: "他刚复明，火车进隧道让他以为又失明了，绝望跳车。", keys: ["隧道","复明","失明","黑暗","眼睛","手术"] },
+        { id: 2, name: "阁楼敲击声", intro: "独居女听阁楼敲击声多年不敢报警，声响停后她自杀了。", truth: "她囚禁了恋人，敲击是求救，声停代表恋人死了，她随之而去。", keys: ["囚禁","关","恋人","男朋友","救命","死"] },
+        { id: 3, name: "完美的合照", intro: "合照中小明在哭。第二天，除了小明，全家人都死了。", truth: "全家人照相前就死了，小明用支架固定尸体合影，他哭是因为恐惧。", keys: ["尸体","死人","支架","固定","恐惧","害怕"] },
+        { id: 4, name: "救生圈", intro: "海面漂着半个救生圈和一具抓着枪的尸体，死于溺水。", truth: "两人抽签决生死，死者输了，开枪自杀后掉入海中。", keys: ["抽签","自杀","开枪","输","决斗"] },
+        { id: 5, name: "致命广播", intro: "主持人在直播时突然关掉麦克风自杀了。", truth: "他杀了妻子并伪造抢劫，结果直播里播出了背景音乐（录音带），他知道穿帮了。", keys: ["杀人","妻子","录音","音乐","穿帮","现场"] },
+        { id: 6, name: "盲人的礼物", intro: "盲人摸了朋友寄来的礼物，脸色惨白扔掉。", truth: "盲人曾食朋友肉求生，礼物是朋友生前寄来的另一只断臂，他摸到了熟悉的手表。", keys: ["手臂","手","吃","肉","手表","熟悉"] },
+        { id: 7, name: "不存在的邻居", intro: "小美每天和邻居老太打招呼，结果老太已死十年。", truth: "小美看的是反光镜里的自己，老太是她的精神分裂幻想。", keys: ["镜子","反光","幻想","精神","分裂","自己"] },
+        { id: 8, name: "最后一根火柴", intro: "雪地赤裸尸体，手里攥着烧过的火柴，无脚印。", truth: "热气球超重坠毁，大家抽签，死者抽到短火柴必须跳下减重。", keys: ["热气球","抽签","火柴","重量","跳"] },
+        { id: 9, name: "深夜电梯", intro: "男人看了一眼电梯镜子，立刻冲出跑向楼梯。", truth: "镜子里反映出男人身后躲着一个只有镜中可见的怪物/杀人犯。", keys: ["镜子","背后","杀人犯","躲","影子","怪物"] }
+    ];
+
+    let gameState = JSON.parse(localStorage.getItem('turtle_soup_v2')) || {
+        sanity: 100,
+        activeStoryId: 0,
+        unlockedCount: 1 
+    };
+
+    function save() {
+        localStorage.setItem('turtle_soup_v2', JSON.stringify(gameState));
+        document.getElementById('sanity-display').innerText = `Sanity: ${Math.floor(gameState.sanity)}`;
+    }
+
+    function showPage(id) {
+        document.querySelectorAll('.page-layer').forEach(p => p.classList.add('page-hidden'));
+        document.getElementById(id).classList.remove('page-hidden');
+    }
+
+    function initLibrary() {
+        const list = document.getElementById('story-list');
+        list.innerHTML = STORIES.map((s, idx) => {
+            const isLocked = idx >= gameState.unlockedCount;
+            return `
+                <div onclick="${isLocked ? '' : `selectStory(${idx})`}" class="p-5 border ${isLocked ? 'border-white/5 opacity-30 cursor-not-allowed' : 'border-primary bg-white/5 cursor-pointer'} rounded-xl transition-all">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold">${isLocked ? '已封印的灵魂' : s.name}</h3>
+                        ${isLocked ? '<span class="material-symbols-outlined text-sm">lock</span>' : ''}
+                    </div>
+                    <p class="text-[10px] text-white/40 mt-1">${isLocked ? '解开前面的谜题以解锁' : s.intro}</p>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectStory(id) {
+        gameState.activeStoryId = id;
+        save();
+        initLibrary();
+        showPage('page-ritual');
+        document.getElementById('current-story-name').innerText = STORIES[id].name;
+        document.getElementById('chat-box').innerHTML = `<div class="bg-primary/10 border-l-2 border-primary p-4 text-sm italic text-white/80">${STORIES[id].intro}</div>`;
+    }
+
+    function startActiveStory() { selectStory(gameState.activeStoryId); }
+
+    function handleAsk() {
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if(!text || gameState.sanity < 5) return;
+
+        appendMsg('user', text);
+        input.value = '';
+        gameState.sanity -= 5;
+        save();
+
+        document.getElementById('typing-indicator').classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('typing-indicator').classList.add('hidden');
+            appendMsg('grave', getResponse(text));
+        }, 800);
+    }
+
+    function getResponse(q) {
+        const story = STORIES[gameState.activeStoryId];
+        for(let k of story.keys) if(q.includes(k)) return "是。";
+        return Math.random() > 0.6 ? "不是。" : "无关。";
+    }
+
+    function appendMsg(role, text) {
+        const div = document.createElement('div');
+        div.className = role === 'user' ? "flex justify-end" : "flex justify-start";
+        div.innerHTML = `<div class="${role === 'user' ? 'bg-white/10' : 'bg-primary/20 text-primary font-bold'} px-4 py-2 rounded-xl text-sm max-w-[85%]">${text}</div>`;
+        const box = document.getElementById('chat-box');
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function confirmTruth() {
+        if(confirm("你要在此提交真相吗？")) {
+            document.getElementById('truth-content').innerText = STORIES[gameState.activeStoryId].truth;
+            showPage('page-truth');
+        }
+    }
+
+    function unlockNextAndReturn() {
+        // 解锁下一关逻辑
+        if (gameState.activeStoryId + 1 === gameState.unlockedCount && gameState.unlockedCount < STORIES.length) {
+            gameState.unlockedCount++;
+        }
+        // 恢复理智值
+        gameState.sanity = Math.min(100, gameState.sanity + 40);
+        save();
+        initLibrary();
+        showPage('page-main');
+    }
+
+    function resetGame() { if(confirm("重置所有进度？")) { localStorage.clear(); location.reload(); } }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !document.getElementById('page-ritual').classList.contains('page-hidden')) {
+            const input = document.getElementById('user-input');
+            if (document.activeElement !== input) input.focus(); else handleAsk();
+        }
+    });
+
+    save();
+    initLibrary();
+</script>
+</body>
+</html>
